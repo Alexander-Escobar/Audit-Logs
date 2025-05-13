@@ -22,7 +22,7 @@ const colores =
 class Audit_Logs 
 {
   /**
-   * Crea una instancia del Logger.
+   * Crea una instancia del Audit_Logs.
    * @param {string} [prefijo=''] - Un prefijo opcional que se añadirá a cada mensaje de log.
    * @param {string} [filenameBase='app.log'] - El nombre base del archivo de log. Se le
    * añadirá un sufijo numérico para la rotación.
@@ -30,7 +30,7 @@ class Audit_Logs
    * @param {number} [maxLines=10000] - El número máximo de líneas por archivo de log antes de la rotación.
    * @param {boolean} [writeToDisk=false] - Indica si se realizaran escrituras a disco en paralelo despues de la escritura en consola.
    */
-  constructor(prefijo = '', filenameBase = 'app.log', useColors = true, maxLines = 10000, writeToDisk = false) 
+  constructor(prefijo = 'AuditLogs', filenameBase = 'app.log', useColors = true, maxLines = 10000, writeToDisk = false) 
   {
     /**
      * El prefijo que se añade a cada mensaje de log.
