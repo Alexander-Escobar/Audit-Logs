@@ -8,7 +8,9 @@ Ejemplo: Partiendo de un proyecto en blanco recien creado
 ```javascript  
 const Audit_Logs = require('minervajs-auditlogs');  
   
-// Permite generar un Log, identificado con prefijo MyApp, habilitando salida en paralelo a disco, donde el archivo tendra un maximo de 10 lineas antes de generar otro.
+// Permite generar un Log, identificado con prefijo MyApp,  
+// habilitando salida en paralelo a disco, donde el archivo tendra  
+// un maximo de 10 lineas antes de generar otro.  
 const auditlogs = new Audit_Logs('MyApp', { writeToDisk: true, maxLines: 10, debuger: true });  
   
 auditlogs.info('Log entry 1');  
@@ -32,10 +34,10 @@ auditlogs.warn("¡Un aviso!");
 ```  
   
 #### Salida en consola
-![Descripción de la imagen](/images/CapturaAuditLogs.PNG)
+![Consola Audit Logs](https://raw.githubusercontent.com/Alexander-Escobar/MinervaJS.Audit-Logs/refs/heads/main/images/CapturaAuditLogs.PNG)
 
 #### La generacion de archivos
-![Descripción de la imagen](/images/CapturaAuditLogsfiles.PNG)
+![Archivos Generados por Audit Logs](https://raw.githubusercontent.com/Alexander-Escobar/MinervaJS.Audit-Logs/refs/heads/main/images/CapturaAuditLogsfiles.PNG)
 
 En la instalacion, puedes hacer uso del archivo muestra que esta en \node_modules\minervajs-auditlogs\example\index.js  
 
@@ -107,7 +109,8 @@ auditlogs.debug('Información detallada sobre la configuración.');
 auditlogs.warn('Se ha detectado una condición inusual.');  
 auditlogs.error('¡Error al procesar la solicitud!');  
 
-// Después de 10 o más llamadas a los métodos de log, se creará un nuevo archivo (app-1.log).  
+// Después de 10 o más llamadas a los métodos de log, 
+// se creará un nuevo archivo (app-1.log).  
 for (let i = 0; i < 15; i++) {  
   auditlogs.info(`Mensaje de prueba ${i + 1}`);  
 }  
@@ -117,7 +120,8 @@ for (let i = 0; i < 15; i++) {
 ```javascript
 const Audit_Logs = require('minervajs-auditlogs');  
   
-// Audit Logs con prefijo "MiServicio", archivo "servicio.log", colores habilitados, rotación cada 5000 líneas y escritura a disco.  
+// Audit Logs con prefijo "MiServicio", archivo "servicio.log", 
+// colores habilitados, rotación cada 5000 líneas y escritura a disco.  
 const loggerConArchivo = new Audit_Logs('MiServicio',  
 	{filenameBase:'servicio.log',  
 	useColors: true,  
@@ -125,7 +129,8 @@ const loggerConArchivo = new Audit_Logs('MiServicio',
 	writeToDisk: true
 	);  
 
-// Audit Logs con prefijo "ModuloX", solo salida a consola (sin escritura a disco).  
+// Audit Logs con prefijo "ModuloX", 
+// solo salida a consola (sin escritura a disco).  
 const loggerSoloConsola = new Audit_Logs('ModuloX',  
 	{filenameBase:'modulo_x.log',  
 	useColors: true,  
