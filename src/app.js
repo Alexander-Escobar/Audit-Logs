@@ -12,7 +12,7 @@ const colores =
   azul: '\x1b[34m',			//
   magenta: '\x1b[35m',
   cian: '\x1b[36m',
-  gris: '\x1b[90m',
+  gris: '\x1b[90m',			//
 };
 
 /**
@@ -30,57 +30,89 @@ class Audit_Logs
    * @param {number} [maxLines=10000] - El número máximo de líneas por archivo de log antes de la rotación.
    * @param {boolean} [writeToDisk=false] - Indica si se realizaran escrituras a disco en paralelo despues de la escritura en consola.
    */
-  constructor(prefijo = 'AuditLogs', filenameBase = 'app.log', useColors = true, maxLines = 10000, writeToDisk = false) 
+  constructor(prefijo = 'AuditLogs', options = {}) 
   {
     /**
      * El prefijo que se añade a cada mensaje de log.
      * @type {string}
      */
     this.prefijo = prefijo;
+	
     /**
      * El nombre base del archivo de log.
      * @type {string}
      */
-    this.filenameBase = path.resolve(__dirname, filenameBase);
+    this.filenameBase = path.resolve(__dirname, options?.filenameBase ?? 'app.log');
+
     /**
      * Indica si se deben usar colores en la salida de la consola.
      * @type {boolean}
      */
-    this.useColors = useColors;
+	this.useColors = options?.useColors ?? true;
+
+    /**
+     * Indica si se realizaran escrituras en modo depuracion, esto permite adicionar caracteristicas de depuracion, como maxLines < 100 lineas.
+     * @type {boolean}
+     */
+	this.debuger = options?.debuger ?? false;
+
     /**
      * El número máximo de líneas por archivo de log antes de la rotación.
+	 * No se permite un minimo menor a 100 lineas a menos que estemos trabajando en modo debug = true
      * @type {number}
      */
-    this.maxLines = maxLines;
+	this.maxLines = options?.maxLines ?? 10000;
+	if (this.maxLines < 100 && this.debuger === false)
+	{ this.maxLines = 100; }
+
     /**
      * Indica si se realizaran escrituras a disco en paralelo despues de la escritura en consola.
      * @type {boolean}
      */
-    this.writeToDisk = writeToDisk;
+	this.writeToDisk = options?.writeToDisk ?? false;
+	
+    /**
+     * Permitir a los usuarios definir su propio formato para las líneas de log.
+	 * Esto podría incluir el orden de los elementos (timestamp, prefijo, nivel, mensaje), la inclusión de información adicional (como el nombre del archivo y la línea donde se generó el log)
+	 * o formatos más estructurados (como JSON)
+     * @type {string}
+     */
+	this.format = options?.format ?? '[%timestamp%] [%prefix%]%colorbegin% [%level%] %message% %colorend%';
+	
+
     /**
      * El número de línea actual en el archivo de log actual.
      * @private
      * @type {number}
      */
     this.currentLineCount = 0;
+
     /**
      * El número de secuencia del archivo de log actual.
      * @private
      * @type {number}
      */
     this.fileSequence = 1;
+
     /**
      * La ruta completa del archivo de log actual.
      * @private
      * @type {string}
      */
     this.currentFilename = this.getFilename();
+
     /**
      *  Cola de promesas para asegurar el orden de escritura
      * @private
      * @type {Promise}
      */	
     this.writeQueue = Promise.resolve();
+	
+	this.start(`Prefijo:            ${this.prefijo}`);
+	this.start(`Nombre Archivo Base:${this.filenameBase}`);
+	this.start(`Uso de Color:       ${this.useColors}`);
+	this.start(`Max Lineas:         ${this.maxLines}`);
+	this.start(`Escritura a Disco:  ${this.writeToDisk}`);
   }
 
   /**
@@ -119,20 +151,8 @@ class Audit_Logs
   {
     const ahora = new Date().toISOString();
     const nivelTexto = nivel.toUpperCase();
-    let lineaConsola = `[${ahora}] [${this.prefijo}]`;
-    const lineaArchivo = `[${ahora}] [${this.prefijo}] [${nivelTexto}] ${mensaje}\n`;
-
-	// Aplicar colores a la salida de la consola
-    if (this.useColors) 
-	{
-      switch (nivel) 
-	  {
-        case 'info': lineaConsola 	= `${lineaConsola} ${colores.verde}[${nivelTexto}] ${mensaje}${colores.reset}`; break;
-        case 'debug': lineaConsola 	= `${lineaConsola} ${colores.azul}[${nivelTexto}] ${mensaje}${colores.reset}`; break;
-        case 'warn': lineaConsola 	= `${lineaConsola} ${colores.amarillo}[${nivelTexto}] ${mensaje}${colores.reset}`; break;
-        case 'error': lineaConsola 	= `${lineaConsola} ${colores.rojo}[${nivelTexto}] ${mensaje}${colores.reset}`; break;
-      }
-    }
+    let lineaConsola = this.formatLog(nivel, mensaje);
+    const lineaArchivo = this.formatLog(nivel, mensaje, "archivo"); //`[${ahora}] [${this.prefijo}] [${nivelTexto}] ${mensaje}\n`;
 
 	// Mostrar en consola
     console.log(lineaConsola);
@@ -160,6 +180,67 @@ class Audit_Logs
       });
     }
   }
+  
+  formatLog(a_nivel, a_mensaje, a_tipo = 'consola') 
+  {
+	let l_formatted = this.format || '[%timestamp%] [%prefix%]%colorbegin% [%level%] %message% %colorend%';
+	const l_now = new Date().toISOString();
+	
+	l_formatted = l_formatted.replace('%timestamp%', l_now);
+	l_formatted = l_formatted.replace('%level%', a_nivel.toUpperCase());
+	l_formatted = l_formatted.replace('%prefix%', this.prefijo);
+	
+	if (a_tipo == 'archivo')
+	{
+		l_formatted = l_formatted.replace('%colorbegin%', '');
+		l_formatted = l_formatted.replace('%colorend%', '');
+		l_formatted = l_formatted + '\n';
+	}
+
+	// Aplicar colores a la salida de la consola
+    if (this.useColors)
+	{
+      switch (a_nivel)
+	  {
+        case 'start': 
+			l_formatted = l_formatted = l_formatted.replace('%colorbegin%', colores.gris);
+			l_formatted = l_formatted.replace('%colorend%', colores.reset);
+			break;
+        case 'info': 
+			l_formatted = l_formatted = l_formatted.replace('%colorbegin%', colores.verde);
+			l_formatted = l_formatted.replace('%colorend%', colores.reset);
+			break;
+        case 'debug': 
+			l_formatted = l_formatted = l_formatted.replace('%colorbegin%', colores.azul);
+			l_formatted = l_formatted.replace('%colorend%', colores.reset);
+			break;
+        case 'warn': 
+			l_formatted = l_formatted = l_formatted.replace('%colorbegin%', colores.amarillo);
+			l_formatted = l_formatted.replace('%colorend%', colores.reset);
+			break;
+        case 'error': 
+			l_formatted = l_formatted = l_formatted.replace('%colorbegin%', colores.rojo);
+			l_formatted = l_formatted.replace('%colorend%', colores.reset);
+			break;
+      }
+    }
+	else
+	{
+		l_formatted = l_formatted = l_formatted.replace('%colorbegin%', colores.gris);
+		l_formatted = l_formatted.replace('%colorend%', colores.reset);
+	}
+	
+	l_formatted = l_formatted.replace('%message%', a_mensaje);
+	
+	return l_formatted;
+  }
+  
+  
+  /**
+   * Registra un mensaje con nivel 'Start'.
+   * @param {string} mensaje - El mensaje inicializacion.
+   */
+  start(mensaje) { this.log('start', mensaje); }
 
   /**
    * Registra un mensaje con nivel 'info'.
@@ -186,12 +267,12 @@ class Audit_Logs
   warn(mensaje) { this.log('warn', mensaje); }
 }
 
-let instance = null;
+module.exports = Audit_Logs;
 
-module.exports = {
-  getInstance: (prefijo, filenameBase, useColors, maxLines, writeToDisk) => {
-    if (!instance) 
-	{ instance = new Audit_Logs(prefijo, filenameBase, useColors, maxLines, writeToDisk); }
-    return instance;
-  },
-};
+// {
+//   getInstance: (prefijo, filenameBase, useColors, maxLines, writeToDisk) => {
+//     if (!instance) 
+// 	{ instance = new Audit_Logs(prefijo, filenameBase, useColors, maxLines, writeToDisk); }
+//     return instance;
+//   },
+// };

@@ -1,18 +1,27 @@
 {
   "name": "minervajs-auditlogs",
   "version": "1.0.0",
-  "description": "Módulo de gestión de mensajes de auditoria, depuración, informativos, avisos y error",
+  "description": "Servicio de Registros de consola, es un módulo de gestión de mensajes para su uso en auditoria, depuración, informativos, avisos y error.",
   "main": "src/app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "Audit Logs",
-    "tracking",
-    "log files",
-    "MinervaJS"
+		"audit",
+		"audit-logger",
+		"audit-logs",
+		"bug",
+		"error-log",
+		"error-messages",
+		"info",
+		"log-files",
+		"logger",
+		"logs",
+		"MinervaJS",
+		"tracking",
+		"warning"
 	],
-  "author": "alexander.enrique.escobar@gmail.com",
+  "author": "Alexander Enrique Escobar <alexander.enrique.escobar@gmail.com> SV",
   "license": "BSD-2-Clause",
   "repository": {
     "type": "git",
@@ -23,3 +32,5 @@
   },
   "homepage": "https://github.com/Alexander-Escobar/MinervaJS.Audit-Logs.git#readme"
 }
+
+
